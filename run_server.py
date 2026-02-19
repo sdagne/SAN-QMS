@@ -3,6 +3,9 @@ Start the Queue Management System server
 """
 import uvicorn
 from config import settings
+import os
+import uvicorn
+port = int(os.environ.get("PORT", 10000))
 
 if __name__ == "__main__":
     print("=" * 60)
@@ -17,7 +20,8 @@ if __name__ == "__main__":
     
     uvicorn.run(
         "main:app",
-        host=settings.host,
+       # host=settings.host,
+        host="0.0.0.0",
         port=settings.port,
         reload=True,
         log_level="info"
