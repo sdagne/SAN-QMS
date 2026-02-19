@@ -11,6 +11,7 @@ from typing import List
 from database import get_db, init_db, Ticket, Citizen, Counter, AuditLog, TicketStatus, ServiceType
 from models import (
     TicketCreateRequest, TicketResponse, TicketVerifyRequest,
+    TicketAssignRequest,
     CounterCreateRequest, CounterResponse, CounterUpdateRequest,
     QueueStatusResponse, StatisticsResponse
 )
@@ -20,6 +21,7 @@ from utils import (
     format_ticket_for_printing, detect_suspicious_activity
 )
 from config import settings
+from auth import require_role
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -36,6 +38,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+admin_access = require_role(["admin"])
+counter_access = require_role(["admin", "counter"])
+display_access = require_role(["admin", "display"])
 
 
 @app.on_event("startup")
@@ -188,7 +194,7 @@ async def create_ticket(
     return response
 
 
-@app.get("/api/tickets/{ticket_number}", response_model=TicketResponse)
+@app.get("/api/tickets/{ticket_number}", response_model=TicketResponse, dependencies=[Depends(counter_access)])
 async def get_ticket_status(
     ticket_number: str,
     db: Session = Depends(get_db)
@@ -430,6 +436,196 @@ async def complete_service(
         "message": "Service completed",
         "ticket_number": ticket.ticket_number
     }
+
+
+@app.post("/api/counters/{counter_id}/assign-ticket")
+async def assign_ticket_to_counter(
+    counter_id: int,
+    request: TicketAssignRequest,
+    db: Session = Depends(get_db)
+):
+    """Assign a waiting ticket to this counter"""
+    counter = db.query(Counter).filter(Counter.id == counter_id).first()
+
+    if not counter:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Counter not found"
+        )
+
+    if not counter.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Counter is not active"
+        )
+
+    ticket = db.query(Ticket).filter(Ticket.ticket_number == request.ticket_number).first()
+
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found"
+        )
+
+    if ticket.status != TicketStatus.WAITING:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ticket is not waiting and cannot be assigned"
+        )
+
+    ticket.status = TicketStatus.CALLED
+    ticket.counter_number = counter.counter_number
+    ticket.called_at = datetime.utcnow()
+    counter.current_ticket_id = ticket.id
+
+    db.commit()
+
+    audit = AuditLog(
+        action="TICKET_ASSIGNED",
+        ticket_id=ticket.id,
+        counter_id=counter.id,
+        details=f"Ticket {ticket.ticket_number} manually assigned to counter {counter.counter_number}"
+    )
+    db.add(audit)
+    db.commit()
+
+    return {
+        "message": "Ticket assigned",
+        "ticket_number": ticket.ticket_number,
+        "counter_number": counter.counter_number
+    }
+
+
+@app.post("/api/counters/assign-next")
+async def assign_next_waiting_ticket(
+    db: Session = Depends(get_db)
+):
+    """Assign the next waiting ticket to the next idle active counter"""
+    counters = db.query(Counter).filter(Counter.is_active == True).order_by(Counter.counter_number).all()
+    if not counters:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No counters configured"
+        )
+
+    waiting_ticket = db.query(Ticket).filter(
+        Ticket.status == TicketStatus.WAITING,
+        Ticket.expires_at > datetime.utcnow()
+    ).order_by(Ticket.created_at).first()
+
+    if not waiting_ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No waiting tickets to assign"
+        )
+
+    busy_counter_numbers = {
+        row[0] for row in db.query(Ticket.counter_number)
+            .filter(
+                Ticket.counter_number.isnot(None),
+                Ticket.status.in_([TicketStatus.CALLED, TicketStatus.SERVING])
+            )
+            .distinct()
+            .all()
+    }
+
+    for counter in counters:
+        if counter.counter_number in busy_counter_numbers:
+            continue
+
+        waiting_ticket.status = TicketStatus.CALLED
+        waiting_ticket.counter_number = counter.counter_number
+        waiting_ticket.called_at = datetime.utcnow()
+        counter.current_ticket_id = waiting_ticket.id
+        db.commit()
+
+        audit = AuditLog(
+            action="TICKET_ASSIGNED",
+            ticket_id=waiting_ticket.id,
+            counter_id=counter.id,
+            details=f"Ticket {waiting_ticket.ticket_number} auto-assigned to counter {counter.counter_number}"
+        )
+        db.add(audit)
+        db.commit()
+
+        return {
+            "message": "Ticket assigned",
+            "ticket_number": waiting_ticket.ticket_number,
+            "counter_number": counter.counter_number
+        }
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="All counters are currently busy"
+    )
+
+
+@app.post("/api/tickets/{ticket_number}/assign-next")
+async def assign_ticket_to_next_available_counter(
+    ticket_number: str,
+    db: Session = Depends(get_db)
+):
+    ticket = db.query(Ticket).filter(Ticket.ticket_number == ticket_number).first()
+
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found"
+        )
+
+    if ticket.status != TicketStatus.WAITING:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ticket is not waiting and cannot be reassigned"
+        )
+
+    counters = db.query(Counter).filter(Counter.is_active == True).order_by(Counter.counter_number).all()
+
+    if not counters:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No counters configured"
+        )
+
+    busy_counter_numbers = {
+        row[0] for row in db.query(Ticket.counter_number)
+            .filter(
+                Ticket.counter_number.isnot(None),
+                Ticket.status.in_([TicketStatus.CALLED, TicketStatus.SERVING])
+            )
+            .distinct()
+            .all()
+    }
+
+    for counter in counters:
+        if counter.counter_number in busy_counter_numbers:
+            continue
+
+        ticket.status = TicketStatus.CALLED
+        ticket.counter_number = counter.counter_number
+        ticket.called_at = datetime.utcnow()
+        counter.current_ticket_id = ticket.id
+        db.commit()
+
+        audit = AuditLog(
+            action="TICKET_ASSIGNED",
+            ticket_id=ticket.id,
+            counter_id=counter.id,
+            details=f"Ticket {ticket.ticket_number} auto-assigned to counter {counter.counter_number}"
+        )
+        db.add(audit)
+        db.commit()
+
+        return {
+            "message": "Ticket assigned",
+            "ticket_number": ticket.ticket_number,
+            "counter_number": counter.counter_number
+        }
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="All counters are currently busy"
+    )
 
 
 # ==================== TICKET MANAGEMENT ENDPOINTS ====================
@@ -802,4 +998,3 @@ if __name__ == "__main__":
         port=settings.port,
         reload=True
     )
-

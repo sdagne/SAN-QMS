@@ -10,6 +10,11 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "sqlite:///./queue_management.db"
+    api_tokens: dict[str, str] = {
+        "admin": "admin-token",
+        "counter": "counter-token",
+        "display": "display-token"
+    }
 
     # Security
     secret_key: str = "your-secret-key-change-in-production-09876543210"
@@ -25,7 +30,7 @@ class Settings(BaseSettings):
     port: int = 8000
 
     # Application
-    app_name: str = "Queue Management System - Ethiopia"
+    app_name: str = "SAN - Queue Management System"
     version: str = "1.0.0"
 
     class Config:

@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1a2e;
+            background: linear-gradient(135deg, #0d3b66, #117a8b, #2ec4b6);
             color: white;
             overflow: hidden;
         }
@@ -44,7 +44,7 @@
 
         .section-title {
             font-size: 2em;
-            color: #667eea;
+            color: white;
             margin-bottom: 30px;
             text-align: center;
         }
@@ -98,6 +98,7 @@
         }
 
         .stats-section {
+            /* Stats row beneath serving cards */
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 30px;
@@ -114,13 +115,38 @@
 
         .stat-box h3 {
             font-size: 3em;
-            color: #667eea;
             margin-bottom: 10px;
         }
 
         .stat-box p {
             font-size: 1.2em;
             opacity: 0.8;
+        }
+
+        .stat-box.waiting {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-color: rgba(59,130,246,0.6);
+            color: white;
+        }
+
+        .stat-box.served {
+            background: linear-gradient(135deg, #10b981, #047857);
+            border-color: rgba(16,185,129,0.6);
+            color: white;
+        }
+
+        .stat-box.avg {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            border-color: rgba(239,68,68,0.6);
+            color: white;
+        }
+
+        .stat-box h3 {
+            color: inherit;
+        }
+
+        .stat-box p {
+            color: rgba(255,255,255,0.85);
         }
 
         .waiting-list {
@@ -151,7 +177,7 @@
             text-align: center;
             padding: 60px;
             font-size: 2em;
-            color: rgba(255,255,255,0.5);
+            color: white;
         }
 
         .time-display {
@@ -177,7 +203,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>ETHIOPIA Queue Management System</h1>
+        <h1>SAN Queue Management System</h1>
         <p class="subtitle">Public Display - Please Wait for Your Number</p>
     </div>
 
@@ -190,17 +216,17 @@
         </div>
 
         <div class="stats-section">
-            <div class="stat-box">
+            <div class="stat-box waiting">
                 <h3 id="waitingCount">-</h3>
                 <p>People Waiting</p>
             </div>
-            <div class="stat-box">
+            <div class="stat-box served">
                 <h3 id="servedToday">-</h3>
                 <p>Served Today</p>
             </div>
-            <div class="stat-box">
+            <div class="stat-box avg">
                 <h3 id="avgWait">-</h3>
-                <p>Average Wait (min)</p>
+                <p>Average Waiting Time (15min)</p>
             </div>
         </div>
 

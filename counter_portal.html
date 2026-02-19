@@ -12,12 +12,14 @@
         }
 
         body {
+            /* Page-level background + layout setup */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f6fa;
             padding: 20px;
         }
 
         .header {
+            /* Top banner with title and counter info */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 25px;
@@ -29,21 +31,25 @@
         }
 
         .header h1 {
-            font-size: 2em;
+            /* Header title typography */
+            font-size: 4em;
         }
 
         .counter-info {
+            /* Highlight box showing counter/staff details */
             background: rgba(255,255,255,0.2);
             padding: 10px 20px;
             border-radius: 10px;
         }
 
         .container {
+            /* Center content wrapper */
             max-width: 1400px;
             margin: 0 auto;
         }
 
         .grid {
+            /* Two-column grid for operations + queue */
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
@@ -51,6 +57,7 @@
         }
 
         .card {
+            /* Card shell for sections */
             background: white;
             padding: 25px;
             border-radius: 15px;
@@ -58,12 +65,14 @@
         }
 
         .card h2 {
+            /* Card heading style */
             color: #667eea;
             margin-bottom: 20px;
             font-size: 1.5em;
         }
 
         .big-button {
+            /* Large action buttons */
             width: 100%;
             padding: 20px;
             font-size: 1.3em;
@@ -76,25 +85,30 @@
         }
 
         .big-button:hover {
+            /* Hover lift effect */
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
 
         .big-button:active {
+            /* Click reset */
             transform: translateY(0);
         }
 
         .btn-call {
+            /* Call button gradient */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
 
         .btn-complete {
+            /* Complete button gradient */
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
         }
 
         .current-ticket {
+            /* Highlight box showing current service */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
@@ -104,17 +118,20 @@
         }
 
         .current-ticket .ticket-number {
+            /* Current ticket number emphasis */
             font-size: 4em;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
         .current-ticket .citizen-name {
+            /* Citizen name text */
             font-size: 1.5em;
             margin-bottom: 5px;
         }
 
         .result {
+            /* Feedback messages (hidden by default) */
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
@@ -161,6 +178,7 @@
         }
 
         .stats-grid {
+            /* Status tiles row */
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
@@ -168,6 +186,7 @@
         }
 
         .stat-card {
+            /* Individual stat tile */
             background: white;
             padding: 20px;
             border-radius: 10px;
@@ -176,7 +195,7 @@
         }
 
         .stat-card h3 {
-            font-size: 2.5em;
+            font-size: 4.5em;
             color: #667eea;
             margin-bottom: 5px;
         }
@@ -184,6 +203,31 @@
         .stat-card p {
             color: #666;
             font-size: 0.9em;
+        }
+
+        .stat-card.waiting {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .stat-card.served {
+            background: linear-gradient(135deg, #10b981, #047857);
+            color: white;
+        }
+
+        .stat-card.avg {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            color: white;
+        }
+        .stat-card.waiting h3,
+        .stat-card.served h3,
+        .stat-card.avg h3 {
+            color: white;
+        }
+        .stat-card.waiting p,
+        .stat-card.served p,
+        .stat-card.avg p {
+            color: rgba(255,255,255,0.85);
         }
     </style>
 </head>
@@ -201,15 +245,15 @@
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card waiting">
                 <h3 id="waitingCount">-</h3>
                 <p>Waiting</p>
             </div>
-            <div class="stat-card">
+            <div class="stat-card served">
                 <h3 id="servedToday">-</h3>
                 <p>Served Today</p>
             </div>
-            <div class="stat-card">
+            <div class="stat-card avg">
                 <h3 id="avgWaitTime">-</h3>
                 <p>Avg Wait (min)</p>
             </div>
@@ -416,11 +460,13 @@
 
         async function refreshQueue() {
             try {
-                const response = await fetch(`${API_BASE}/api/display/queue-status`);
+                const response = await fetch(`${API_BASE}/api/display/waiting-tickets`);
                 const data = await response.json();
 
-                if (response.ok) {
-                    displayQueue(data);
+                if (response.ok && Array.isArray(data.tickets)) {
+                    displayWaitingQueue(data.tickets);
+                } else {
+                    document.getElementById('queueList').innerHTML = '<p style="text-align: center; color: #999;">No tickets in queue</p>';
                 }
             } catch (error) {
                 console.error('Failed to refresh queue:', error);
@@ -444,30 +490,34 @@
             }
         }
 
-        function displayQueue(data) {
+        function displayWaitingQueue(tickets) {
             const queueList = document.getElementById('queueList');
 
-            if (!data.now_serving || data.now_serving.length === 0) {
+            if (!tickets || tickets.length === 0) {
                 queueList.innerHTML = '<p style="text-align: center; color: #999;">No tickets in queue</p>';
                 return;
             }
 
-            let html = '';
-            data.now_serving.forEach(ticket => {
-                html += `
+            const html = tickets.map(ticket => {
+                const createdAt = new Date(ticket.created_at);
+                const formattedTime = createdAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                return `
                     <div class="queue-item">
                         <div>
                             <div class="ticket-num">${ticket.ticket_number}</div>
-                            <div style="color: #666; font-size: 0.9em;">Status: ${ticket.status}</div>
+                            <div style="color: #666; font-size: 0.9em;">
+                                ${ticket.service_type} · ${formattedTime}
+                            </div>
                         </div>
-                        <div style="text-align: right;">
-                            ${ticket.counter_number ? `<strong>Counter ${ticket.counter_number}</strong>` : 'Waiting'}
+                        <div style="text-align: right; font-size: 0.9em; color: #555;">
+                            Pos ${ticket.position}<br>
+                            ${ticket.id_number_display}
                         </div>
                     </div>
                 `;
-            });
+            }).join('');
 
-            queueList.innerHTML = html || '<p style="text-align: center; color: #999;">No tickets</p>';
+            queueList.innerHTML = html;
         }
 
         function showCurrentTicket(ticketNumber, citizenName) {

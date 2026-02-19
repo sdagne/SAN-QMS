@@ -22,6 +22,11 @@ class TicketVerifyRequest(BaseModel):
     id_number: str
 
 
+class TicketAssignRequest(BaseModel):
+    """Request to assign a waiting ticket to a counter"""
+    ticket_number: str
+
+
 class CounterCreateRequest(BaseModel):
     """Request to create a counter"""
     counter_number: int

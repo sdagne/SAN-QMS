@@ -12,6 +12,7 @@
         }
 
         body {
+            /* Full-page gradient background and base text styling */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -19,12 +20,14 @@
         }
 
         .container {
+            /* Centered main wrapper for the dashboard content */
             max-width: 1400px;
             margin: 0 auto;
         }
 
         .header {
-            background: white;
+            /* Top banner with SAN branding and status indicator */
+            background: linear-gradient(135deg, #0d3b66, #117a8b, #2ec4b6);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
@@ -33,21 +36,23 @@
         }
 
         .header h1 {
-            color: #333;
+            color: #fff;
             margin-bottom: 10px;
             font-size: 2.5em;
         }
 
         .header .flag {
             font-size: 3em;
+            color: white;
         }
 
         .header p {
-            color: #666;
+            color: rgba(255,255,255,0.9);
             font-size: 1.2em;
         }
 
         .grid {
+            /* Responsive grid holding the four functional cards */
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
@@ -55,6 +60,7 @@
         }
 
         .card {
+            /* Base card style for content panels */
             background: white;
             padding: 25px;
             border-radius: 15px;
@@ -62,12 +68,48 @@
         }
 
         .card h2 {
+            /* Card heading style (color overridden in themed cards) */
             color: #667eea;
             margin-bottom: 15px;
             font-size: 1.5em;
         }
 
+        /* Section-specific card themes */
+        .card.kiosk-card {
+            /* Ticket kiosk section uses a blue gradient */
+            background: linear-gradient(135deg, #0d3b66, #117a8b);
+            color: white;
+        }
+
+        .card.ticket-mgmt-card {
+            /* Ticket management section gets an orange gradient */
+            background: linear-gradient(135deg, #ff7a18, #af1010);
+            color: white;
+        }
+
+        .card.counter-card {
+            /* Counter management section uses a green gradient */
+            background: linear-gradient(135deg, #16c79a, #0a8062);
+            color: white;
+        }
+
+        .card.display-card {
+            /* Queue display section gets a purple gradient */
+            background: linear-gradient(135deg, #8b5cf6, #4c1d95);
+            color: white;
+        }
+
+        .card.kiosk-card h2,
+        .card.ticket-mgmt-card h2,
+        .card.counter-card h2,
+        .card.display-card h2 {
+            /* Force white bold text for themed cards */
+            color: white;
+            font-weight: bold;
+        }
+
         .button {
+            /* Shared primary button style */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -89,6 +131,7 @@
         }
 
         .input-group {
+            /* Wrapper spacing for form controls */
             margin-bottom: 15px;
         }
 
@@ -115,6 +158,7 @@
         }
 
         .response {
+            /* Console-style box for API call results */
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
@@ -135,8 +179,8 @@
         }
 
         .status.success {
-            background: #d4edda;
-            color: #155724;
+            background: linear-gradient(135deg, #5a0f19, #a61d2d);
+            color: #fff7f7;
         }
 
         .status.error {
@@ -164,6 +208,7 @@
         }
 
         .stats-grid {
+            /* Grid for the live queue stats tiles */
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
@@ -171,6 +216,7 @@
         }
 
         .stat-card {
+            /* Base style for each Live Queue stat */
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
@@ -178,17 +224,52 @@
         }
 
         .stat-card h4 {
+            /* Large metric number text */
             color: #667eea;
             font-size: 2em;
             margin-bottom: 5px;
         }
 
         .stat-card p {
+            /* Metric label text */
             color: #666;
             font-size: 0.9em;
         }
 
+        .stat-card.waiting {
+            /* Waiting tile uses blue gradient */
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .stat-card.served {
+            /* Served tile uses green gradient */
+            background: linear-gradient(135deg, #10b981, #047857);
+            color: white;
+        }
+
+        .stat-card.active {
+            /* Active counters tile uses red gradient */
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            color: white;
+        }
+
+        .stat-card.waiting h4,
+        .stat-card.served h4,
+        .stat-card.active h4 {
+            /* Ensure numbers stay white inside gradients */
+            color: white;
+        }
+
+        .stat-card.waiting p,
+        .stat-card.served p,
+        .stat-card.active p {
+            /* Slightly transparent white labels */
+            color: rgba(255,255,255,0.85);
+        }
+
         .api-docs {
+            /* Footer section linking to API docs */
             background: #2d3748;
             color: #e2e8f0;
             padding: 20px;
@@ -197,6 +278,7 @@
         }
 
         .api-docs a {
+            /* Link styling inside API docs block */
             color: #667eea;
             text-decoration: none;
             font-weight: bold;
@@ -205,14 +287,53 @@
         .api-docs a:hover {
             text-decoration: underline;
         }
+
+        .card.read-only {
+            /* Read-only list should feel like a subdued monitor */
+            background: linear-gradient(135deg, #0c1a26, #14283a);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+        }
+
+        .card.read-only h2 {
+            color: #f8fafc;
+        }
+
+        .card.read-only table,
+        .card.read-only table th,
+        .card.read-only table td {
+            color: #f8fafc;
+            font-weight: 600;
+        }
+
+        .card.read-only table th {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .card.read-only table tbody tr:nth-child(even) {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .card.read-only table tbody tr:nth-child(odd) {
+            background: rgba(255,255,255,0.01);
+        }
+
+        .read-only-note {
+            background: #dc3545;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="flag">🇪🇹</div>
+            <div class="flag">SAN</div>
             <h1>Queue Management System</h1>
-            <p>Ethiopia's Fair Queue Standard - Demo Dashboard</p>
+            <p>SAN Fair Queue Standard - Demo Dashboard</p>
             <div style="margin-top: 15px;">
                 <span class="status success" id="serverStatus">Server: Checking...</span>
             </div>
@@ -220,7 +341,7 @@
 
         <div class="grid">
             <!-- Kiosk Card -->
-            <div class="card">
+            <div class="card kiosk-card">
                 <h2>🎫 Kiosk - Create Ticket</h2>
                 <div class="input-group">
                     <label>ID Number</label>
@@ -307,7 +428,7 @@
             </div>
 
             <!-- Ticket Management Card -->
-            <div class="card">
+            <div class="card ticket-mgmt-card">
                 <h2>🗑️ Ticket Management</h2>
                 <div class="input-group">
                     <label>ID Number</label>
@@ -319,7 +440,7 @@
             </div>
 
             <!-- Counter Card -->
-            <div class="card">
+            <div class="card counter-card">
                 <h2>🏢 Counter Management</h2>
                 <div class="input-group">
                     <label>Counter ID</label>
@@ -331,7 +452,7 @@
             </div>
 
             <!-- Display Card -->
-            <div class="card">
+            <div class="card display-card">
                 <h2>📺 Queue Display</h2>
                 <button class="button" onclick="getQueueStatus()">🔄 Refresh Queue Status</button>
                 <button class="button" onclick="getStatistics()">📊 View Statistics</button>
@@ -343,15 +464,15 @@
         <div class="card">
             <h2>🎯 Live Queue Status</h2>
             <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
+                <div class="stat-card waiting">
                     <h4 id="waitingCount">-</h4>
                     <p>Waiting</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card served">
                     <h4 id="servedCount">-</h4>
                     <p>Served Today</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card active">
                     <h4 id="activeCounters">-</h4>
                     <p>Active Counters</p>
                 </div>
@@ -363,11 +484,11 @@
         </div>
 
         <!-- All Waiting Tickets Section (Read-Only) -->
-        <div class="card" style="margin-bottom: 30px;">
+        <div class="card read-only" style="margin-bottom: 30px;">
             <h2>👥 All Waiting Tickets (Read-Only)</h2>
-            <p style="color: #666; margin-bottom: 15px; font-size: 0.9em;">
-                📋 This list shows all tickets currently waiting in the queue. Staff cannot modify these - view only.
-            </p>
+            <p class="read-only-note">
+                 📋 This list shows all tickets currently waiting in the queue. Staff cannot modify these - view only.
+             </p>
             <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
                 <button class="button" onclick="refreshWaitingTickets()" style="background: #4CAF50;">
                     🔄 Refresh Waiting List
@@ -401,7 +522,7 @@
             try {
                 const response = await fetch(`${API_BASE}/health`);
                 const data = await response.json();
-                document.getElementById('serverStatus').textContent = 'Server: ✅ Online';
+                document.getElementById('serverStatus').textContent = 'Server: Online ✅';
                 document.getElementById('serverStatus').className = 'status success';
                 refreshQueueStatus();
             } catch (error) {
@@ -661,7 +782,7 @@
                     }
 
                     let html = `
-                        <div style="margin-bottom: 15px; padding: 10px; background: #e3f2fd; border-radius: 5px; border-left: 4px solid #2196F3;">
+                        <div style="margin-bottom: 15px; padding: 10px; background: #0f172a; border-radius: 5px; border-left: 4px solid #f97316; color: white;">
                             <strong>ℹ️ Note:</strong> This is a read-only view. Use Counter Portal to call next ticket.
                         </div>
                         <table style="width: 100%; border-collapse: collapse;">
