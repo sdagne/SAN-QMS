@@ -23,10 +23,7 @@ from utils import (
 from config import settings
 from auth import require_role
 import os
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 # Initialize FastAPI app
 app = FastAPI(
     title=settings.app_name,
@@ -37,43 +34,8 @@ app = FastAPI(
 # Serve the entire web_portals folder at /web
 app.mount("/web", StaticFiles(directory="web_portals"), name="web")
 
-# ================= TEMPLATES =================
-# For dynamic HTML rendering using Jinja2
-templates = Jinja2Templates(directory="web_portals")
-
 # ================= ROUTES =================
 # Serve main page at root /
-@app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
-    # Use this if you want dynamic content
-    return templates.TemplateResponse("index.html", {"request": request})
-
-# Optional: example route for dashboard.html
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-admin_access = require_role(["admin"])
-counter_access = require_role(["admin", "counter"])
-display_access = require_role(["admin", "display"])
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize database on startup"""
-    init_db()
-    print(f"🚀 {settings.app_name} v{settings.version} started")
-    print(f"📊 Server running on http://{settings.host}:{settings.port}")
-
-
 @app.get("/")
 async def root():
     """Root endpoint"""
